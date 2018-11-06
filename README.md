@@ -1,5 +1,5 @@
 ## Why
-I like VirtualBox and it has nothing to do with why I publish a 0day vulnerability. The purpose is my disagreement with contemporary state of infosec, especially of security research and bug bounty:
+I like VirtualBox and it has nothing to do with why I publish a 0day vulnerability. The reason is my disagreement with contemporary state of infosec, especially of security research and bug bounty:
 
 1) Wait half a year until a vulnerability is patched is considered fine.
 2) In the bug bounty field these are considered fine:
