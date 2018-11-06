@@ -246,9 +246,9 @@ Let's draw a table where values of these variables are specified before and afte
 Tx Descriptor | Before/After | u16MaxPktLen | pThis->u16TxPktLen | pDesc->data.cmd.u20DTALEN
 --- | --- | --- | --- | ---
 data_2 | Before | 0x3010 | 0 | 0x10
-| After | 0x3010 | 0x10 | 0 
+- | After | 0x3010 | 0x10 | 0 
 data_3 | Before | 0x3010 | 0x10 | 0
-| After | 0x3010 | 0x10 | 0
+- | After | 0x3010 | 0x10 | 0
 
 You just need to note that when data_3 is processed pThis->u16TxPktLen equals to 0x10.
 
