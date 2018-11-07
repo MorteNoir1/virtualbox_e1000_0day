@@ -377,7 +377,7 @@ The exploit is 100% reliable. It means it either works always or never because o
 
 ### Exploitation Algorithm
 1) An attacker unloads e1000.ko loaded by default in Linux guests and loads the exploit's LKM.
-2) The LKM initializes E1000 according to the datasheet. Only the transmit half is initialized since there is not need for the receive half.
+2) The LKM initializes E1000 according to the datasheet. Only the transmit half is initialized since there is no need for the receive half.
 3) Step 1: information leak.
     1) The LKM disables E1000 loopback mode to make stack buffer overflow code unreachable.
     2) The LKM uses the integer underflow vulnerability to make the heap buffer overflow.
