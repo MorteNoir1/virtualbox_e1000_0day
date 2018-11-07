@@ -850,9 +850,9 @@ static DECLCALLBACK(void) e1kR3NetworkDown_XmitPending(PPDMINETWORKDOWN pInterfa
 }
 ```
 
-The shellcode adds 0x48 to RBP to make it as it should be in e1kR3NetworkDown_XmitPending. Next, the registers RBX, R12, R13, R14, R15 are taken from stack because it's required by System V ABI to preserve it in a callee function. If they aren't the hypervisor will crash because of invalid pointers in them.
+The shellcode adds 0x48 to RBP to make it as it should be in e1kR3NetworkDown_XmitPending. Next, the registers RBX, R12, R13, R14, R15 are taken from the stack because it's required by System V ABI to preserve it in a callee function. If they aren't, the hypervisor will crash because of invalid pointers in them.
 
-It could be enough because the virtual machine isn't crashes anymore and continues execute. But there will an access violation in PDMR3QueueDestroyDevice function when the VM is shutdown. The reason is that when the heap is overflowed an important structure PDMQUEUE is overwritten. Furthermore, it's overwritten by the last two ROP gadgets i.e. the last 16 bytes. I tried to reduce the ROP chain size and failed, but when I replaced the data manually the hypervisor was still crashing. It meant the obstacle is not as obvious as seemed.
+It could be enough because the virtual machine isn't crashing anymore and continues to execute. But there will an access violation in PDMR3QueueDestroyDevice function when the VM is shutdown. The reason is that when the heap is overflowed an important structure PDMQUEUE is overwritten. Furthermore, it's overwritten by the last two ROP gadgets i.e. the last 16 bytes. I tried to reduce the ROP chain size and failed, but when I replaced the data manually, the hypervisor was still crashing. It meant the obstacle is not as obvious as seemed.
 
 Data structure being overwritten is a linked list. Data to be overwritten is in the last second list element; a next pointer is to be overwritten. The remedy turned out to be simple:
 
