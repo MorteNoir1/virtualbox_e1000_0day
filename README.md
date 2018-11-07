@@ -373,7 +373,7 @@ The exploit is Linux kernel module (LKM) to load in a guest OS. The Windows case
 Elevated privileges are required to load a driver in both OSs. It's common and isn't considered an insurmountable obstacle. Look at Pwn2Own contest where researcher use exploit chains: a browser opened a malicious website in the guest OS is exploited, a browser sandbox escape is made to gain full ring 3 access, an operating system vulnerability is exploited to pave a way to ring 0 from where there are anything you need to attack a hypervisor from the guest OS.
 The most powerful hypervisor vulnerabilities are for sure those that can be exploited from guest ring 3. There in VirtualBox is also such code that is reachable without guest root privileges, and it's mostly not audited yet.
 
-The exploit is 100% reliable. It means it either works always or never because of mismatched binaries or other, more subtle reasons I didn't account. It works at least on Ubuntu 16.04 and 18.04 x86_64 with default configuration.
+The exploit is 100% reliable. It means it either works always or never because of mismatched binaries or other, more subtle reasons I didn't account. It works at least on Ubuntu 16.04 and 18.04 x86_64 guests with default configuration.
 
 ### Exploitation Algorithm
 1) An attacker unloads e1000.ko loaded by default in Linux guests and loads the exploit's LKM.
