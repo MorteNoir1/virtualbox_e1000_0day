@@ -73,7 +73,7 @@ We will learn why they should be like that in our step-by-step analysis.
 ### Root Cause Analysis
 
 #### [context_1, data_2, data_3] Processing
-Let's assume the descriptors above are written to the Tx Ring in the specified order and TDT register is updated by the guest. Now the host will execute ```e1kXmitPending``` function in ```src/VBox/Devices/Network/DevE1000.cpp``` file (most of comments are and will be stripped for the sake of readability):
+Let's assume the descriptors above are written to the Tx Ring in the specified order and TDT register is updated by the guest. Now the host will execute e1kXmitPending function in src/VBox/Devices/Network/DevE1000.cpp file (most of comments are and will be stripped for the sake of readability):
 
 ```c
 static int e1kXmitPending(PE1KSTATE pThis, bool fOnWorkerThread)
@@ -93,9 +93,9 @@ static int e1kXmitPending(PE1KSTATE pThis, bool fOnWorkerThread)
             }
 ```
 
-```e1kTxDLazyLoad``` will read all the 5 Tx descriptors from the Tx Ring. Then e1kLocateTxPacket is called for the first time. This function iterates through all the descriptors to set up an initial state but does not actually handle them. In our case the first call to e1kLocateTxPacket will handle ```context_1```, ```data_2```, and ```data_3``` descriptors. The two remaining descriptors, ```context_4``` and ```data_5```, will be handled at the second iteration of the while loop (we will cover the second iteration in the next section). This two-part array division is crucial to trigger the vulnerability so let's figure out why.
+e1kTxDLazyLoad will read all the 5 Tx descriptors from the Tx Ring. Then e1kLocateTxPacket is called for the first time. This function iterates through all the descriptors to set up an initial state but does not actually handle them. In our case the first call to e1kLocateTxPacket will handle context_1, data_2, and data_3 descriptors. The two remaining descriptors, context_4 and data_5, will be handled at the second iteration of the while loop (we will cover the second iteration in the next section). This two-part array division is crucial to trigger the vulnerability so let's figure out why.
 
-```e1kLocateTxPacket``` looks like this:
+e1kLocateTxPacket looks like this:
 
 ```c
 static bool e1kLocateTxPacket(PE1KSTATE pThis)
@@ -122,11 +122,11 @@ static bool e1kLocateTxPacket(PE1KSTATE pThis)
         }
 ```
 
-The first descriptor (```context_1```) is of ```E1K_DTYP_CONTEXT``` so ```e1kUpdateTxContext``` function is called. This function updates a TCP Segmentation Context if TCP Segmentation is enabled for the descriptor. It is true for ```context_1``` so the TCP Segmentation Context will be updated. (What the TCP Segmentation Context Update actually is, is not important, and we will use this just to refer the code below).
+The first descriptor (context_1) is of E1K_DTYP_CONTEXT so e1kUpdateTxContext function is called. This function updates a TCP Segmentation Context if TCP Segmentation is enabled for the descriptor. It is true for context_1 so the TCP Segmentation Context will be updated. (What the TCP Segmentation Context Update actually is, is not important, and we will use this just to refer the code below).
 
-The second descriptor (```data_2```) is of ```E1K_DTYP_DATA``` so several actions unnecessary for the discussion will be performed.
+The second descriptor (data_2) is of E1K_DTYP_DATA so several actions unnecessary for the discussion will be performed.
 
-The third descriptor (```data_3```) is also of ```E1K_DTYP_DATA``` but since ```data_3.data_length == 0``` no action is performed.
+The third descriptor (data_3) is also of E1K_DTYP_DATA but since data_3.data_length == 0 no action is performed.
 
 At the moment the three descriptors are initially processed and the two remain. Now the thing: after the switch statement there is a check wheter a descriptor's end_of_packet field was set. It is true for data_3 descriptor (data_3.end_of_packet == true). The code does some actions and returns from the function:
 
