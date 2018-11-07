@@ -382,7 +382,7 @@ The exploit is 100% reliable. It means it either works always or never because o
     1) The LKM disables E1000 loopback mode to make stack buffer overflow code unreachable.
     2) The LKM uses the integer underflow vulnerability to make the heap buffer overflow.
     3) The heap buffer overflow allows for use E1000 EEPROM to write two any bytes relative to a heap buffer in 128 KB range. Hence the attacker gains a write primitive.
-    4) The LKM uses the write primitive 8 times to write bytes to ACPI (Advanced Configuration and Power Interface) data structure on heap. Bytes are written to an index variable of heap buffer from which a single bytes will be read. Since the buffer size is lesser than maximum index number (255) the attacker can read past the buffer, hence he gains a read primitive.
+    4) The LKM uses the write primitive 8 times to write bytes to ACPI (Advanced Configuration and Power Interface) data structure on heap. Bytes are written to an index variable of a heap buffer from which a single byte will be read. Since the buffer size is lesser than maximum index number (255) the attacker can read past the buffer, hence he/she gains a read primitive.
     5) The LKM uses the read primitive 8 times to access ACPI and obtain 8 bytes from the heap. Those bytes are pointer of VBoxDD.so shared library.
     6) The LKM subtracts RVA from the pointer to obtain VBoxDD.so image base.
 4) Step 2: stack buffer overflow.
@@ -390,10 +390,10 @@ The exploit is 100% reliable. It means it either works always or never because o
     2) The LKM uses the integer underflow vulnerability to make the heap buffer overflow and the stack buffer overflow. Saved return address (RIP/EIP) is overwritten. The attacker gains control.
     3) ROP chain is executed to execute a shellcode loader.
 5) Step 3: shellcode.
-    1) The shellcode loader copies a shellcode from the stack beside itself. The shellcode is executed.
+    1) The shellcode loader copies a shellcode from the stack next to itself. The shellcode is executed.
     2) The shellcode does fork and execve syscalls to spawn an arbitrary process on the host side.
     3) The parent process does process continuation.
-6) The attacker unloads the LKM and loads e1000.ko back to allows the guest to use network.
+6) The attacker unloads the LKM and loads e1000.ko back to allow the guest to use network.
 
 ### Initialization
 The LKM maps physical memory regarding to E1000 MMIO. Physical address and size are predefined by the hypervisor.
@@ -502,12 +502,12 @@ Here m_u16Addr, m_u16Word, and m_fWriteEnabled are fields of EEPROM93C46 structu
 m_au16Data[u32Addr] = u16Value;
 ```
 
-instruction will write two bytes at arbitrary 16-bit offset from m_au16Data that also residing in the structure. We have found a write primitive.
+statement will write two bytes at arbitrary 16-bit offset from m_au16Data that also residing in the structure. We have found a write primitive.
 
 #### Read primitive
 The next problem was to find data structures on the heap to write arbitrary data into, pursuing the main goal to leak a shared library pointer to get its image base. Hopefully, it was need not to do an unstable heap spray because virtual devices' main data structures appeared to be allocated from an internal hypervisor heap in the way that the distance between them is always constant, despite that their virtual addresses, of course, are randomized by ASLR.
 
-When a virtual machine is launched the PDM (Pluggable Device and Driver Manager) subsystem allocates PDMDEVINS object in the hypervisor heap.
+When a virtual machine is launched the PDM (Pluggable Device and Driver Manager) subsystem allocates PDMDEVINS objects in the hypervisor heap.
 
 ```c
 int pdmR3DevInit(PVM pVM)
@@ -599,7 +599,7 @@ I traced that code under GDB using a script and got these results:
 
 Note the E1000 device at #0xE position. It can be seen in the second list that the following device is at 0x5700 offset from E1000, the next is at 0x19E0 and so on. We already said that these distances are always the same, and it's our exploitation opportunity.
 
-Devices following E100 are ICH IC'97, OHCI, ACPI, VirtualBox GIM. Learning their data structures I figured the way to use the write primitive.
+Devices following E1000 are ICH IC'97, OHCI, ACPI, VirtualBox GIM. Learning their data structures I figured the way to use the write primitive.
 
 On virtual machine boot up the ACPI device is created (src/VBox/Devices/PC/DevACPI.cpp):
 
@@ -661,7 +661,7 @@ gef➤  p 0x00007fc44d6ecdc6 - 0x00007fc44d4f3000
 $2 = 0x1f9dc6
 ```
 
-It seems there is a pointer to a string placed at a fixed offset from VBoxDD.so image base. The pointer lies at 0x58 offset at the end of ACPIState. We can read that pointer byte-by-byte using the primitives, and finally obtain VBoxDD.so image base. We just hope that data past ACPIState structure is not random on each virtual machine boot. Hopefully, it isn't; the pointer at 0x58 offset is always there.
+It seems there is a pointer to a string placed at a fixed offset from VBoxDD.so image base. The pointer lies at 0x58 offset at the end of ACPIState. We can read that pointer byte-by-byte using the primitives and finally obtain VBoxDD.so image base. We just hope that data past ACPIState structure is not random on each virtual machine boot. Hopefully, it isn't; the pointer at 0x58 offset is always there.
 
 #### Information Leak
 Now we combine write and read primitives and exploit them to bypass ASLR. We will overflow the heap overwriting EEPROM93C46 structure, then trigger EEPROM finite automaton to write the index to ACPIState structure, and then execute INB(0x4107) in the guest to access ACPI to read one byte of the pointer. Repeat those 8 times incrementing the index by 1.
@@ -699,7 +699,7 @@ uint64_t stage_1_main(void* mmio, void* tx_ring) {
 It has been said that in order for the integer underflow not to lead to the stack buffer overflow, certain E1000 registers should been configured. The idea is that the buffer is being overflowed in e1kHandleRxPacket function which is called while handling Tx descriptors in the loopback mode. Indeed, in the loopback mode the guest sends network packets to itself so they are received right after being sent. We disable this mode so e1kHandleRxPacket is unreachable.
 
 ### DEP Bypass
-We have bypassed ASLR. Now the loopback mode can be disabled and the stack buffer overflow can be triggered.
+We have bypassed ASLR. Now the loopback mode can be enabled and the stack buffer overflow can be triggered.
 
 ```c
 void stage_2_overflow_heap_and_stack_buffers(void* mmio, void* tx_ring, uint64_t vboxdd_base) {
@@ -852,7 +852,7 @@ static DECLCALLBACK(void) e1kR3NetworkDown_XmitPending(PPDMINETWORKDOWN pInterfa
 
 The shellcode adds 0x48 to RBP to make it as it should be in e1kR3NetworkDown_XmitPending. Next, the registers RBX, R12, R13, R14, R15 are taken from stack because it's required by System V ABI to preserve it in a callee function. If they aren't the hypervisor will crash because of invalid pointers in them.
 
-It could be enough because the virtual machine isn't crashes anymore and continues execute. But there will an access violation in PDMR3QueueDestroyDevice function when the VM is shutdown. The reason is that when the heap is overflowed an important structure PDMQUEUE is overwritten. Furthermore, it's overwritten by the last two ROP gadgets i.e. the last 16 bytes. I tried to reduce the ROP chain size unsuccessfully but when I replaced the data manually the hypervisor was still crushing. It meant the obstacle is not as obvious as seemed.
+It could be enough because the virtual machine isn't crashes anymore and continues execute. But there will an access violation in PDMR3QueueDestroyDevice function when the VM is shutdown. The reason is that when the heap is overflowed an important structure PDMQUEUE is overwritten. Furthermore, it's overwritten by the last two ROP gadgets i.e. the last 16 bytes. I tried to reduce the ROP chain size and failed, but when I replaced the data manually the hypervisor was still crashing. It meant the obstacle is not as obvious as seemed.
 
 Data structure being overwritten is a linked list. Data to be overwritten is in the last second list element; a next pointer is to be overwritten. The remedy turned out to be simple:
 
