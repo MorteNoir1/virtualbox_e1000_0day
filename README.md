@@ -35,7 +35,7 @@ To send network packets a guest does what a common PC does: it configures a netw
 
 The 82540EM datasheet provides for three Tx descriptor types: legacy, context, data. Legacy is deprecated I believe. The other two are used together. The only thing we care of is that context descriptors set the maximum packet size and switch TCP/IP segmentation, and that data descriptors hold physical addresses of network packets and their sizes. The data descriptor's packet size must be lesser than the context descriptor's maximum packet size. Usually context descriptors are supplied to the network card before data descriptors.
 
-To supply Tx descriptors to the network card a guess writes them to Tx Ring. This is a ring buffer residing in physical memory at a predefined address. When all descriptors are written down to Tx Ring the guest updates E1000 MMIO TDT register (Transmit Descriptor Tail) to tell the host there are new descriptors to handle.
+To supply Tx descriptors to the network card a guest writes them to Tx Ring. This is a ring buffer residing in physical memory at a predefined address. When all descriptors are written down to Tx Ring the guest updates E1000 MMIO TDT register (Transmit Descriptor Tail) to tell the host there are new descriptors to handle.
 
 ### Input
 Consider the following array of Tx descriptors:
