@@ -322,7 +322,7 @@ This makes the following check to be true since 0xFFFFFFFF > 0x4188:
         }
 ```
 
-e1kFallbackAddSegment function will be called with size 0x4188. Without the vulnerability it's impossible to call e1kFallbackAddSegment with a size greater than 0x4000 because, during the TCP Segmentation Context Update in e1kUpdateTxContext, there is a check that the maximum segment size is less or equal to 0x4000:
+e1kFallbackAddSegment function will be called with size 0x4188. Without the vulnerability it's impossible to call e1kFallbackAddSegment with a size greater than 0x3FA0 (E1K_MAX_TX_PKT_SIZE == 0x3FA0) because, during the TCP Segmentation Context Update in e1kUpdateTxContext, there is a check that the maximum segment size is less or equal to 0x3FA0:
 
 ```c
 DECLINLINE(void) e1kUpdateTxContext(PE1KSTATE pThis, E1KTXDESC *pDesc)
