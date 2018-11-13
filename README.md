@@ -128,7 +128,7 @@ The second descriptor (data_2) is of E1K_DTYP_DATA so several actions unnecessar
 
 The third descriptor (data_3) is also of E1K_DTYP_DATA but since data_3.data_length == 0 no action is performed.
 
-At the moment the three descriptors are initially processed and the two remain. Now the thing: after the switch statement there is a check wheter a descriptor's end_of_packet field was set. It is true for data_3 descriptor (data_3.end_of_packet == true). The code does some actions and returns from the function:
+At the moment the three descriptors are initially processed and the two remain. Now the thing: after the switch statement there is a check whether a descriptor's end_of_packet field was set. It is true for data_3 descriptor (data_3.end_of_packet == true). The code does some actions and returns from the function:
 
 ```c
         if (pDesc->legacy.cmd.fEOP)
