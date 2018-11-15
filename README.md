@@ -24,7 +24,7 @@ I'm exhausted of the first two, therefore my move is full disclosure. Infosec, p
 Until the patched VirtualBox build is out you can change the network card of your virtual machines to PCnet (either of two) or to Paravirtualized Network. If you can't, change the mode from NAT to another one. The former way is more secure.
 
 ## Introduction
-A default VirtualBox virtual network device is Intel PRO/1000 MT Desktop (82540EM) and the default network mode is NAT. We will refer to it E1000.
+A default VirtualBox virtual network device is Intel PRO/1000 MT Desktop (82540EM) and the default network mode is NAT. We will refer to it as E1000.
 
 The E1000 has a vulnerability allowing an attacker with root/administrator privileges in a guest to escape to a host ring3. Then the attacker can use existing techniques to escalate privileges to ring 0 via /dev/vboxdrv.
 
